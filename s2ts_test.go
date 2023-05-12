@@ -12,7 +12,7 @@ type OtherStruct struct {
 	T time.Time `json:"t,omitempty"`
 }
 
-type ComplexStruct struct {
+type ComplexStruct[K ~float32 | ~float64] struct {
 	S           string           `json:"s,omitempty"`
 	I           int              `json:"i,omitempty"`
 	F           float64          `json:"f,omitempty"`
@@ -23,13 +23,16 @@ type ComplexStruct struct {
 	Data        Data             `json:"d"`
 	DataPtr     *Data            `json:"dp"`
 	RawPtr      *json.RawMessage `json:"rm"`
+	GenericTest K                `json:"genericTest"`
 }
+
+type Float32Alias float32
 
 type Data map[string]interface{}
 
 func ExampleComplexStruct() {
 	s2ts := struct2ts.New(nil)
-	s2ts.Add(ComplexStruct{})
+	s2ts.Add(ComplexStruct[Float32Alias]{})
 	s2ts.RenderTo(os.Stdout)
 
 	// Output:
@@ -51,14 +54,14 @@ func ExampleComplexStruct() {
 	// 	return (isInt ? parseInt(v) : parseFloat(v)) || 0;
 	// }
 	//
-	// function FromArray<T>(Ctor: { new(v: any): T }, data?: any[] | any, def = null): T[] | null {
+	// function FromArray<T>(Ctor: { new (v: any): T }, data?: any[] | any, def = null): T[] | null {
 	// 	if (!data || !Object.keys(data).length) return def;
 	// 	const d = Array.isArray(data) ? data : [data];
 	// 	return d.map((v: any) => new Ctor(v));
 	// }
 	//
 	// function ToObject(o: any, typeOrCfg: any = {}, child = false): any {
-	// 	if (!o) return null;
+	// 	if (o == null) return null;
 	// 	if (typeof o.toObject === 'function' && child) return o.toObject();
 	//
 	// 	switch (typeof o) {
@@ -79,16 +82,17 @@ func ExampleComplexStruct() {
 	//
 	// 	for (const k of Object.keys(o)) {
 	// 		const v: any = o[k];
-	// 		if (!v) continue;
+	// 		if (v === undefined) continue;
+	// 		if (v === null) continue;
 	// 		d[k] = ToObject(v, typeOrCfg[k] || {}, true);
 	// 	}
 	//
 	// 	return d;
 	// }
 	//
-	// // classes
-	// // struct2ts:github.com/OneOfOne/struct2ts_test.ComplexStructOtherStruct
-	// class ComplexStructOtherStruct {
+	// // structs
+	// // struct2ts:github.com/OneOfOne/struct2ts_test.OtherStruct
+	// class OtherStruct {
 	// 	t: Date;
 	//
 	// 	constructor(data?: any) {
@@ -110,10 +114,12 @@ func ExampleComplexStruct() {
 	// 	f: number;
 	// 	ts: Date | null;
 	// 	t: Date;
-	// 	o: ComplexStructOtherStruct | null;
-	// 	nno: ComplexStructOtherStruct;
+	// 	o: OtherStruct | null;
+	// 	nno: OtherStruct;
 	// 	d: { [key: string]: any };
 	// 	dp: { [key: string]: any } | null;
+	// 	rm: any;
+	// 	genericTest: number;
 	//
 	// 	constructor(data?: any) {
 	// 		const d: any = (data && typeof data === 'object') ? ToObject(data) : {};
@@ -122,10 +128,12 @@ func ExampleComplexStruct() {
 	// 		this.f = ('f' in d) ? d.f as number : 0;
 	// 		this.ts = ('ts' in d) ? ParseDate(d.ts) : null;
 	// 		this.t = ('t' in d) ? ParseDate(d.t) : new Date();
-	// 		this.o = ('o' in d) ? new ComplexStructOtherStruct(d.o) : null;
-	// 		this.nno = new ComplexStructOtherStruct(d.nno);
+	// 		this.o = ('o' in d) ? new OtherStruct(d.o) : null;
+	// 		this.nno = new OtherStruct(d.nno);
 	// 		this.d = ('d' in d) ? d.d as { [key: string]: any } : {};
 	// 		this.dp = ('dp' in d) ? d.dp as { [key: string]: any } : null;
+	// 		this.rm = ('rm' in d) ? d.rm as any : null;
+	// 		this.genericTest = ('genericTest' in d) ? d.genericTest as number : 0;
 	// 	}
 	//
 	// 	toObject(): any {
@@ -133,13 +141,14 @@ func ExampleComplexStruct() {
 	// 		cfg.i = 'number';
 	// 		cfg.f = 'number';
 	// 		cfg.t = 'string';
+	// 		cfg.genericTest = 'number';
 	// 		return ToObject(this, cfg);
 	// 	}
 	// }
 	//
 	// // exports
 	// export {
-	// 	ComplexStructOtherStruct,
+	// 	OtherStruct,
 	// 	ComplexStruct,
 	// 	ParseDate,
 	// 	ParseNumber,

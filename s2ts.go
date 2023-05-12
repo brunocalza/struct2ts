@@ -144,6 +144,9 @@ func (s *StructToTS) addType(t reflect.Type, name string) (out *Struct) {
 
 	if name == "" {
 		name = t.Name()
+
+		name = removeGenericReference(name)
+
 		if !s.opts.NoCapitalize {
 			name = capitalize(name)
 		}
@@ -290,4 +293,10 @@ func capitalize(s string) string {
 
 		return r
 	}, s)
+}
+
+func removeGenericReference(s string) string {
+	parts := strings.Split(s, "[")
+
+	return parts[0]
 }
